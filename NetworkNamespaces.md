@@ -15,20 +15,24 @@ ip netns exec {NAMESPACE_TO_EXECUTE_INTO} {WHATEVER; SEQUENCE; OF; COMMANDS; YOU
 ```
 
 
+##User that executes command
+
+ip-netns requires sudo to run. As a result all commands executed
+with
+```
+ip netns exec
+```
+are executed under root.
+
+To work around that we can do
+```
+ip netns exec {NAMESPACE} sudo -u {USER_TO_EXECUTE_UNDER} zsh
+
+```
+to get a shell executed in the namespace. Anything executed in that shell
+executes in the namespace under the selected user's account
+
 ##Virtualenv
 
-It seems that namespaces don't play well with python's virtualenv/path.
-In order to use a virtualenv inside a namespace we have to activate it
-in the namespace before executing anything in python.
-
-```
-ip netns exec {NAMESPACE} source venv/bin/activate; which ipython
-```
-
-It might produce an error like
-
-```
-exec of "source" failed: No such file or directory
-```
-
-but it should be working
+Python's virtualenv can't be sourced as root/sudo as a result we need to
+follow the technique covered in the previous section
