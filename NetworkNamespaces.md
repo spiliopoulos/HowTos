@@ -15,7 +15,7 @@ ip netns exec {NAMESPACE_TO_EXECUTE_INTO} {WHATEVER; SEQUENCE; OF; COMMANDS; YOU
 ```
 
 
-##User that executes command
+##Executing commands not as root
 
 ip-netns requires sudo to run. As a result all commands executed
 with
@@ -36,3 +36,41 @@ executes in the namespace under the selected user's account
 
 Python's virtualenv can't be sourced as root/sudo as a result we need to
 follow the technique covered in the previous section
+
+
+##Accessing X-apps that run in a network namespace from another namespace
+
+If you need to remotely view the x-apps that are launched from a namespace
+different than the one you ssh'ed into, ssh x-forwarding will not work.
+
+You could try using *socat* like:
+```
+socat exec:'ssh {REMOTE_HOST} rm -rf /tmp/.X11-unix/X1; socat unix-l\:/tmp/.X11-unix/X1\,fork -' unix:/tmp/.X11-unix/X0
+```
+
+However it's not very consistent and for some reason it's not working with apps
+that need to use dbus
+
+You should use [Xpra](http://xpra.org)
+
+In the remote server and outside of any namespace run:
+```
+xpra start :{DISPLAY_NUMBER}
+```
+
+In the local server attach to the remote xpra session by running:
+```
+xpra attach ssh:{REMOTE_HOST}:{DISPLAY_NUMBER}
+```
+
+Run apps in the namespace by:
+```
+DISPLAY=:{DISPLAY_NUMBER} app_command
+```
+
+or by first exporting the DISPLAY
+```
+export DISPLAY=:{DISPLAY_NUMBER}
+```
+
+
